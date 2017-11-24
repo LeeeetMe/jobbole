@@ -3,7 +3,8 @@ import scrapy
 from scrapy.http import Request
 from urllib import parse
 import re
-
+from ArticleSpider.items import JobboleArticlesItem
+from ArticleSpider.utls.common import get_md5
 class JobboleSpider(scrapy.Spider):
     name = 'jobbole'
     allowed_domains = ['blog.jobbole.com']
@@ -33,13 +34,15 @@ class JobboleSpider(scrapy.Spider):
         # 通过xpath获取
         # next_page = response.xpath('//*[@id="archive"]/div[21]/a[4]/@href').extract_first()
         # 通过css获取
-        next_page = response.css('.next.page-numbers::attr(href)').extract_first()
-        yield Request(next_page,callback=self.parse)
+        # next_page = response.css('.next.page-numbers::attr(href)').extract_first()
+        # yield Request(next_page,callback=self.parse)
 
     def parse_detail(self,response):
         '''
             解析文章具体内容
         '''
+        # 文章封面图url
+        front_url = response.meta.get('front_img_url','')
         # 标题
         # title = response.xpath('//div[@class="entry-header"]/h1/text()').extract_first()
         title = response.css('.entry-header h1::text').extract_first()
@@ -73,9 +76,25 @@ class JobboleSpider(scrapy.Spider):
         category = response.css('.entry-meta-hide-on-mobile a:nth-child(1)::text').extract_first()
 
         # tag分类.list
-        # tag = response.xpath('//p[@class="entry-meta-hide-on-mobile"]/a[contains(@href,"/tag/")]/text()').extract()
-        tag = response.css('.entry-meta-hide-on-mobile a[href*="/tag/"]::text').extract()
-
+        # tags = response.xpath('//p[@class="entry-meta-hide-on-mobile"]/a[contains(@href,"/tag/")]/text()').extract()
+        tags = response.css('.entry-meta-hide-on-mobile a[href*="/tag/"]::text').extract()
+        tags = ','.join(tags)
         # 文章详细
         # content = response.xpath('//div[@class="entry"]').extract_first()
         content = response.css('.entry').extract_first()
+
+        # 保存文章
+        artcileSpider_item = JobboleArticlesItem()
+        # artcileSpider_item['artURL_id'] = get_md5(response.url)
+        # artcileSpider_item['art_url']= response.url
+        # artcileSpider_item['front_url']= [front_url]
+        artcileSpider_item['title']= title
+        # artcileSpider_item['up_count']= up_count
+        # artcileSpider_item['collect_count']= collect_count
+        # artcileSpider_item['comment_count']= comment_count
+        # artcileSpider_item['create_date']= create_date
+        # artcileSpider_item['category']= category
+        # artcileSpider_item['tags']= tags
+        # artcileSpider_item['content']= content
+
+        yield artcileSpider_item
