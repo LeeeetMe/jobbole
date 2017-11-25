@@ -71,12 +71,19 @@ ITEM_PIPELINES = {
     'ArticleSpider.pipelines.JsonWithEncodingPipeline':2,
     # 'ArticleSpider.pipelines.JsonExporterPipeline': 3,
     # 'scrapy.pipelines.images.MySQLPipeline':1,  # 配置图片下载1为权重(优先执行)
-    # 'ArticleSpider.pipelines.JobBoleImagePipelines': 1,  #自定义JobBoleImagePipelinesj继承ImagesPipeline
+    'ArticleSpider.pipelines.JobBoleImagePipelines': 1,  #自定义JobBoleImagePipelinesj继承ImagesPipeline
 }
 
 IMAGES_URLS_FIELD = 'front_url' # 下载图片的url字段
 BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 IMAGES_STORE = os.path.join(BASE_PATH,'images')
+
+# MySQL配置
+MYSQL_HOST = 'localhost'
+MYSQL_DBNAME = 'JobboleArticles'
+MYSQL_USER = 'root'
+MYSQL_PASSWORD = 'zhaoyinghan'
+
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See http://doc.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True

@@ -3,13 +3,15 @@ import scrapy
 from scrapy.http import Request
 from urllib import parse
 import re
-from ArticleSpider.items import JobboleArticlesItem
+from ArticleSpider.items import JobboleArticlesItem,ArticleItemLoader
 from ArticleSpider.utls.common import get_md5
+from scrapy.loader import ItemLoader
 class JobboleSpider(scrapy.Spider):
     name = 'jobbole'
     allowed_domains = ['blog.jobbole.com']
     start_urls = ['http://blog.jobbole.com/all-posts/']
     post_num = 0
+
 
     def parse(self, response):
 
@@ -39,7 +41,27 @@ class JobboleSpider(scrapy.Spider):
 
     def parse_detail(self,response):
         '''
-            解析文章具体内容
+            解析文章
+        '''
+        item_loader = ArticleItemLoader(item=JobboleArticlesItem(), response=response)
+        item_loader.add_value('artURL_id', get_md5(response.url))
+        item_loader.add_css('title', '.entry-header h1::text')
+        item_loader.add_css('up_count', '.post-adds>:first-child h10::text')
+        item_loader.add_css('collect_count', '.post-adds span:nth-child(2)')
+        item_loader.add_css('comment_count', 'a[href="#article-comment"] span::text')
+        item_loader.add_css('tags', '.entry-meta-hide-on-mobile a[href*="/tag/"]::text')
+        item_loader.add_css('content', '.entry')
+        item_loader.add_css('category', '.entry-meta-hide-on-mobile a:nth-child(1)::text')
+        item_loader.add_css('create_date', '.entry-meta-hide-on-mobile::text')
+
+        item_loader.add_value('art_url', response.url)
+        item_loader.add_value('front_url',[response.meta.get('front_img_url','')])
+        itemLoader = item_loader.load_item()
+        yield itemLoader
+
+    def parse_detail_deprecated(self,response):
+        '''
+            解析文章具体内容，弃用
         '''
         # 文章封面图url
         front_url = response.meta.get('front_img_url','')
@@ -85,16 +107,16 @@ class JobboleSpider(scrapy.Spider):
 
         # 保存文章
         artcileSpider_item = JobboleArticlesItem()
-        # artcileSpider_item['artURL_id'] = get_md5(response.url)
-        # artcileSpider_item['art_url']= response.url
-        # artcileSpider_item['front_url']= [front_url]
+        artcileSpider_item['artURL_id'] = get_md5(response.url)
+        artcileSpider_item['art_url']= response.url
+        artcileSpider_item['front_url']= [front_url]
         artcileSpider_item['title']= title
-        # artcileSpider_item['up_count']= up_count
-        # artcileSpider_item['collect_count']= collect_count
-        # artcileSpider_item['comment_count']= comment_count
-        # artcileSpider_item['create_date']= create_date
-        # artcileSpider_item['category']= category
-        # artcileSpider_item['tags']= tags
-        # artcileSpider_item['content']= content
+        artcileSpider_item['up_count']= up_count
+        artcileSpider_item['collect_count']= collect_count
+        artcileSpider_item['comment_count']= comment_count
+        artcileSpider_item['create_date']= create_date
+        artcileSpider_item['category']= category
+        artcileSpider_item['tags']= tags
+        artcileSpider_item['content']= content
 
         yield artcileSpider_item
